@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Game;
 using Dalamud.Logging;
 
-namespace HypnotoadPlugin;
+namespace HypnotoadPlugin.Offsets;
 
 public static class OffsetManager
 {
@@ -19,8 +19,8 @@ public static class OffsetManager
         var props = typeof(Offsets).GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
             .Select(i => (prop: i, Attribute: i.GetCustomAttribute<SigAttribute>())).Where(i => i.Attribute != null);
 
-        List<Exception> exceptions = new List<Exception>(100);
-        foreach ((PropertyInfo propertyInfo, SigAttribute sigAttribute) in props)
+        var exceptions = new List<Exception>(100);
+        foreach (var (propertyInfo, sigAttribute) in props)
         {
             try
             {
@@ -28,7 +28,7 @@ public static class OffsetManager
                 sig = string.Join(' ', sig.Split(new[] { ' ' }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
                     .Select(i => i == "?" ? "??" : i));
 
-                IntPtr address;
+                nint address;
                 switch (sigAttribute)
                 {
                     case StaticAddressAttribute:
@@ -69,11 +69,11 @@ public static class OffsetManager
     }
 }
 
-internal abstract class SigAttribute : Attribute
+internal class SigAttribute : Attribute
 {
     protected SigAttribute(string sigString, int offset = 0)
     {
-        this.SigString = sigString;
+        SigString = sigString;
         Offset = offset;
     }
 

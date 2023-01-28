@@ -2,20 +2,20 @@
  * Copyright(c) 2022 Ori @MidiBard2
  */
 
-using Dalamud.Logging;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using System.Runtime.InteropServices;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace HypnotoadPlugin;
+namespace HypnotoadPlugin.Offsets;
 
-static class GfxSettings
+internal static class GfxSettings
 {
 
     internal class AgentConfigSystem : AgentInterface
@@ -31,7 +31,7 @@ static class GfxSettings
                 Api.ToastGui.Toast -= OnToast;
             }
 
-            var refreshConfigGraphicState = (delegate* unmanaged<IntPtr, long>)Offsets.ApplyGraphicConfigsFunc;
+            var refreshConfigGraphicState = (delegate* unmanaged<nint, long>)Offsets.ApplyGraphicConfigsFunc;
             var result = refreshConfigGraphicState(Pointer);
             Api.ToastGui.Toast += OnToast;
         }
@@ -71,19 +71,17 @@ static class GfxSettings
         private static int Glare_DX11;
         private static int DistortionWater_DX11;
 
-        public unsafe bool CheckLowSettings()
+        public static bool CheckLowSettings()
         {
-            if ((originalObjQuantity == 4)      &&
-                (WaterWet_DX11 == 0)            &&
-                (OcclusionCulling_DX11 == 1)    &&
-                (ReflectionType_DX11 == 3)      &&
-                (GrassQuality_DX11 == 3)        &&
-                (SSAO_DX11 == 4))
-                return true;
-            return false;
+            return originalObjQuantity == 4      &&
+                   WaterWet_DX11 == 0            &&
+                   OcclusionCulling_DX11 == 1    &&
+                   ReflectionType_DX11 == 3      &&
+                   GrassQuality_DX11 == 3        &&
+                   SSAO_DX11 == 4;
         }
 
-        public unsafe void GetObjQuantity()
+        public static unsafe void GetObjQuantity()
         {
             FPSInActive = _configModule->GetIntValue(ConfigOption.FPSInActive);
             originalObjQuantity = _configModule->GetIntValue(ConfigOption.DisplayObjectLimitType);
@@ -118,7 +116,7 @@ static class GfxSettings
             DistortionWater_DX11 = _configModule->GetIntValue(ConfigOption.DistortionWater_DX11);
         }
 
-        public unsafe void SetMinimalObjQuantity()
+        public static unsafe void SetMinimalObjQuantity()
         {
             _configModule->SetOption(ConfigOption.FPSInActive, 0);
             _configModule->SetOption(ConfigOption.DisplayObjectLimitType, 4);
@@ -155,7 +153,7 @@ static class GfxSettings
 
         }
 
-        public unsafe void RestoreObjQuantity()
+        public static unsafe void RestoreObjQuantity()
         {
             _configModule->SetOption(ConfigOption.FPSInActive,                      FPSInActive);
             _configModule->SetOption(ConfigOption.DisplayObjectLimitType,           originalObjQuantity);
@@ -197,12 +195,12 @@ static class GfxSettings
 
 public unsafe class AgentInterface
 {
-    public IntPtr Pointer { get; }
-    public IntPtr VTable { get; }
+    public nint Pointer { get; }
+    public nint VTable { get; }
     public int Id { get; }
     public FFXIVClientStructs.FFXIV.Component.GUI.AgentInterface* Struct => (FFXIVClientStructs.FFXIV.Component.GUI.AgentInterface*)Pointer;
 
-    public AgentInterface(IntPtr pointer, int id)
+    public AgentInterface(nint pointer, int id)
     {
         Pointer = pointer;
         Id = id;
@@ -215,22 +213,19 @@ public unsafe class AgentInterface
     }
 }
 
-unsafe class AgentManager
+internal unsafe class AgentManager
 {
-    internal List<AgentInterface> AgentTable { get; } = new List<AgentInterface>(400);
+    internal List<AgentInterface> AgentTable { get; } = new(400);
 
     private AgentManager()
     {
         try
         {
-            unsafe
-            {
-                var instance = Framework.Instance();
-                var agentModule = instance->UIModule->GetAgentModule();
-                var i = 0;
-                foreach (var pointer in agentModule->AgentsSpan)
-                    AgentTable.Add(new AgentInterface((IntPtr)pointer.Value, i++));
-            }
+            var instance = Framework.Instance();
+            var agentModule = instance->UIModule->GetAgentModule();
+            var i = 0;
+            foreach (var pointer in agentModule->AgentsSpan)
+                AgentTable.Add(new AgentInterface((nint)pointer.Value, i++));
         }
         catch (Exception e)
         {
@@ -238,10 +233,10 @@ unsafe class AgentManager
         }
     }
 
-    public static AgentManager Instance { get; } = new AgentManager();
+    public static AgentManager Instance { get; } = new();
 
     internal AgentInterface FindAgentInterfaceById(int id) => AgentTable[id];
 
-    internal AgentInterface FindAgentInterfaceByVtable(IntPtr vtbl) => AgentTable.First(i => i.VTable == vtbl);
+    internal AgentInterface FindAgentInterfaceByVtable(nint vtbl) => AgentTable.First(i => i.VTable == vtbl);
 }
 
