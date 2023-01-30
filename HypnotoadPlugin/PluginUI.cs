@@ -43,15 +43,15 @@ class PluginUI : IDisposable
     // passing in the image here just for simplicity
     public PluginUI(Configuration configuration, TextureWrap goatImage)
     {
-        this.configuration = configuration;
-        this.goatImage = goatImage;
-        _pipeClient = new PipeClient<Message>("LightAmp-DalamudBridge", formatter: new NewtonsoftJsonFormatter());
-        _pipeClient.Connected += pipeClient_Connected;
+        this.configuration          =  configuration;
+        this.goatImage              =  goatImage;
+        _pipeClient                 =  new PipeClient<Message>("LightAmp-DalamudBridge", formatter: new NewtonsoftJsonFormatter());
+        _pipeClient.Connected       += pipeClient_Connected;
         _pipeClient.MessageReceived += pipeClient_MessageReceived;
-        _pipeClient.Disconnected += pipeClient_Disconnected;
-        _reconnectTimer.Elapsed += reconnectTimer_Elapsed;
-        _reconnectTimer.Interval = 2000;
-        _reconnectTimer.Enabled = configuration.Autoconnect;
+        _pipeClient.Disconnected    += pipeClient_Disconnected;
+        _reconnectTimer.Elapsed     += reconnectTimer_Elapsed;
+        _reconnectTimer.Interval    =  2000;
+        _reconnectTimer.Enabled     =  configuration.Autoconnect;
 
         Visible = false;
     }
@@ -60,16 +60,16 @@ class PluginUI : IDisposable
     {
         _pipeClient.WriteAsync(new Message
         {
-            msgType = MessageType.Handshake,
+            msgType    = MessageType.Handshake,
             msgChannel = 0,
-            message = Environment.ProcessId.ToString()
+            message    = Environment.ProcessId.ToString()
         });
 
         _pipeClient.WriteAsync(new Message
         {
-            msgType = MessageType.SetGfx,
+            msgType    = MessageType.SetGfx,
             msgChannel = 0,
-            message = Environment.ProcessId + ":" + GfxSettings.AgentConfigSystem.CheckLowSettings()
+            message    = Environment.ProcessId + ":" + GfxSettings.AgentConfigSystem.CheckLowSettings()
         });
     }
 
@@ -79,7 +79,7 @@ class PluginUI : IDisposable
             return;
 
         _reconnectTimer.Interval = 2000;
-        _reconnectTimer.Enabled = configuration.Autoconnect;
+        _reconnectTimer.Enabled  = configuration.Autoconnect;
     }
 
     private void reconnectTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -169,7 +169,7 @@ class PluginUI : IDisposable
                     if (configuration.Autoconnect)
                         ManuallyDisconnected = false;
                     _reconnectTimer.Interval = 500;
-                    _reconnectTimer.Enabled = true;
+                    _reconnectTimer.Enabled  = true;
                 }
                 ImGui.SameLine();
                 //The disconnect Button

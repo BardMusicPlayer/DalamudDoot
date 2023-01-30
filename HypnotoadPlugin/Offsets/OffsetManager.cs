@@ -38,14 +38,14 @@ public static class OffsetManager
                         address = scanner.ScanText(sig);
                         break;
                     case OffsetAttribute:
-                        {
-                            address = scanner.ScanText(sig);
-                            address += sigAttribute.Offset;
-                            var structure = Marshal.PtrToStructure(address, propertyInfo.PropertyType);
-                            propertyInfo.SetValue(null, structure);
-                            PluginLog.Information($"[{nameof(OffsetManager)}][{propertyInfo.Name}] {propertyInfo.PropertyType.FullName} {structure}");
-                            continue;
-                        }
+                    {
+                        address =  scanner.ScanText(sig);
+                        address += sigAttribute.Offset;
+                        var structure = Marshal.PtrToStructure(address, propertyInfo.PropertyType);
+                        propertyInfo.SetValue(null, structure);
+                        PluginLog.Information($"[{nameof(OffsetManager)}][{propertyInfo.Name}] {propertyInfo.PropertyType.FullName} {structure}");
+                        continue;
+                    }
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -74,7 +74,7 @@ internal class SigAttribute : Attribute
     protected SigAttribute(string sigString, int offset = 0)
     {
         SigString = sigString;
-        Offset = offset;
+        Offset    = offset;
     }
 
     public readonly string SigString;

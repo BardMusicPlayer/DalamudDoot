@@ -30,7 +30,7 @@ public class Hypnotoad : IDalamudPlugin
     {
         Api.Initialize(this, pluginInterface);
         PluginInterface = pluginInterface;
-        CommandManager = commandManager;
+        CommandManager  = commandManager;
 
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         Configuration.Initialize(PluginInterface);
@@ -47,10 +47,10 @@ public class Hypnotoad : IDalamudPlugin
         });
 
         AgentConfigSystem = new AgentConfigSystem(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.Offsets.AgentConfigSystem));
-        AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.Offsets.AgentPerformance));
+        AgentPerformance  = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.Offsets.AgentPerformance));
         AgentConfigSystem.GetObjQuantity();
 
-        PluginInterface.UiBuilder.Draw += DrawUI;
+        PluginInterface.UiBuilder.Draw         += DrawUI;
         PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
     }
 

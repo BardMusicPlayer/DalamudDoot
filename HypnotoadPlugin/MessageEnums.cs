@@ -42,8 +42,8 @@ public readonly struct ChatMessageChannelType
 
     private ChatMessageChannelType(string name, int channelCode, string channelShortCut)
     {
-        Name = name;
-        ChannelCode = channelCode;
+        Name            = name;
+        ChannelCode     = channelCode;
         ChannelShortCut = channelShortCut;
     }
 

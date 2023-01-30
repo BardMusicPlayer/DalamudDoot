@@ -193,7 +193,7 @@ public class PluginCommandManager<T> : IDisposable where T : IDalamudPlugin
         var commandInfo = new CommandInfo(handlerDelegate)
         {
             HelpMessage = helpMessage?.HelpMessage ?? string.Empty,
-            ShowInHelp = doNotShowInHelp == null
+            ShowInHelp  = doNotShowInHelp == null
         };
 
         // Create list of tuples that will be filled with one tuple per alias, in addition to the base command tuple.
