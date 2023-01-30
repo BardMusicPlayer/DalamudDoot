@@ -102,13 +102,13 @@ public class PerformActions
         {
             case < 0:
                 keynumber += 12;
-                offset = -12;
-                octave = -1;
+                offset    =  -12;
+                octave    =  -1;
                 break;
             case > 12:
                 keynumber -= 12;
-                offset = 12;
-                octave = 1;
+                offset    =  12;
+                octave    =  1;
                 break;
         }
 
