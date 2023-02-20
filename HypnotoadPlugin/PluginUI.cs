@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Reflection;
 using System.Timers;
 using Dalamud.Logging;
 using H.Formatters;
@@ -45,11 +46,13 @@ class PluginUI : IDisposable
     {
         this.configuration          =  configuration;
         this.goatImage              =  goatImage;
-        _pipeClient                 =  new PipeClient<Message>("LightAmp-DalamudBridge", formatter: new NewtonsoftJsonFormatter());
-        _pipeClient.Connected       += pipeClient_Connected;
+
+        _pipeClient = new PipeClient<Message>("Hypnotoad", formatter: new NewtonsoftJsonFormatter());
+        _pipeClient.Connected += pipeClient_Connected;
         _pipeClient.MessageReceived += pipeClient_MessageReceived;
-        _pipeClient.Disconnected    += pipeClient_Disconnected;
-        _reconnectTimer.Elapsed     += reconnectTimer_Elapsed;
+        _pipeClient.Disconnected += pipeClient_Disconnected;
+        _reconnectTimer.Elapsed += reconnectTimer_Elapsed;
+
         _reconnectTimer.Interval    =  2000;
         _reconnectTimer.Enabled     =  configuration.Autoconnect;
 
@@ -63,6 +66,14 @@ class PluginUI : IDisposable
             msgType    = MessageType.Handshake,
             msgChannel = 0,
             message    = Environment.ProcessId.ToString()
+        });
+
+
+        _pipeClient.WriteAsync(new Message
+        {
+            msgType = MessageType.Version,
+            msgChannel = 0,
+            message = Environment.ProcessId + ":" + Assembly.GetExecutingAssembly().GetName().Version.ToString()
         });
 
         _pipeClient.WriteAsync(new Message
@@ -107,6 +118,14 @@ class PluginUI : IDisposable
             
         switch (inMsg.msgType)
         {
+            case MessageType.Version:
+                if (new Version(inMsg.message) > Assembly.GetEntryAssembly().GetName().Version)
+                {
+                    ManuallyDisconnected = true;
+                    _pipeClient.DisconnectAsync();
+                    PluginLog.LogError($"Hypnotoad is out of date and cannot work with the running bard program.");
+                }
+                break;
             case MessageType.NoteOn:
                 PerformActions.PlayNote(Convert.ToInt16(inMsg.message), true);
                 break;
