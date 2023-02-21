@@ -10,7 +10,7 @@
 
     <Description>BardMusicPlayer &amp; LightAmp companion for enhanced functionality.</Description>
     <PackageProjectUrl>https://github.com/BardMusicPlayer/Hypnotoad-Plugin</PackageProjectUrl>
-    <Version>0.0.1.8</Version>
+    <Version>0.0.1.9</Version>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\Data\toad.png" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+    <Content Include="..\Data\icon.png" CopyToOutputDirectory="PreserveNewest" Visible="false" />
   </ItemGroup>
 
   <ItemGroup>
