@@ -4,12 +4,9 @@ using System.Numerics;
 using System.Reflection;
 using System.Timers;
 using Dalamud.Logging;
-using H.Formatters;
-using H.Pipes;
 using H.Pipes.Args;
 using HypnotoadPlugin.Offsets;
 using ImGuiNET;
-using ImGuiScene;
 
 namespace HypnotoadPlugin;
 
@@ -40,21 +37,21 @@ class PluginUI : IDisposable
 
     public PluginUI(Configuration configuration)
     {
-        this.configuration          =  configuration;
+        this.configuration = configuration;
 
         Pipe.Initialize();
-        Pipe.Client.Connected += pipeClient_Connected;
+        Pipe.Client.Connected       += pipeClient_Connected;
         Pipe.Client.MessageReceived += pipeClient_MessageReceived;
-        Pipe.Client.Disconnected += pipeClient_Disconnected;
-        _reconnectTimer.Elapsed += reconnectTimer_Elapsed;
+        Pipe.Client.Disconnected    += pipeClient_Disconnected;
+        _reconnectTimer.Elapsed     += reconnectTimer_Elapsed;
 
-        _reconnectTimer.Interval    =  2000;
-        _reconnectTimer.Enabled     =  configuration.Autoconnect;
+        _reconnectTimer.Interval = 2000;
+        _reconnectTimer.Enabled  = configuration.Autoconnect;
 
         Visible = false;
     }
 
-    private void pipeClient_Connected(object sender, ConnectionEventArgs<Message> e)
+    private static void pipeClient_Connected(object sender, ConnectionEventArgs<Message> e)
     {
         Pipe.Client.WriteAsync(new Message
         {
@@ -66,9 +63,9 @@ class PluginUI : IDisposable
 
         Pipe.Client.WriteAsync(new Message
         {
-            msgType = MessageType.Version,
+            msgType    = MessageType.Version,
             msgChannel = 0,
-            message = Environment.ProcessId + ":" + Assembly.GetExecutingAssembly().GetName().Version.ToString()
+            message    = Environment.ProcessId + ":" + Assembly.GetExecutingAssembly().GetName().Version
         });
 
         Pipe.Client.WriteAsync(new Message
@@ -114,11 +111,11 @@ class PluginUI : IDisposable
         switch (inMsg.msgType)
         {
             case MessageType.Version:
-                if (new Version(inMsg.message) > Assembly.GetEntryAssembly().GetName().Version)
+                if (new Version(inMsg.message) > Assembly.GetEntryAssembly()?.GetName().Version)
                 {
                     ManuallyDisconnected = true;
                     Pipe.Client.DisconnectAsync();
-                    PluginLog.LogError($"Hypnotoad is out of date and cannot work with the running bard program.");
+                    PluginLog.LogError("Hypnotoad is out of date and cannot work with the running bard program.");
                 }
                 break;
             case MessageType.NoteOn:

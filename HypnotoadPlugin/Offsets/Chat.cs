@@ -145,7 +145,7 @@ public static partial class Chat
     {
         if (_sanitiseString == null)
         {
-            throw new InvalidOperationException("Could not find signature for chat sanitisation");
+            throw new InvalidOperationException("Could not find signature for chat sanitization");
         }
 
         var uText = Utf8String.FromString(text);

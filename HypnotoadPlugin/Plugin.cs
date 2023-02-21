@@ -1,5 +1,4 @@
-﻿using System.IO;
-using Dalamud.Game;
+﻿using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
 using Dalamud.IoC;

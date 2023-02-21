@@ -22,7 +22,7 @@ public enum MessageType
 
     Chat = 40,
 
-    NetworkPacket = 50,
+    NetworkPacket = 50
 }
 
 public readonly struct ChatMessageChannelType
