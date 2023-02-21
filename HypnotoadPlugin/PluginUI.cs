@@ -169,9 +169,9 @@ class PluginUI : IDisposable
     {
         if (Visible)
         {
-            ImGui.SetNextWindowSize(new Vector2(300, 80), ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowSizeConstraints(new Vector2(300, 90), new Vector2(float.MaxValue, float.MaxValue));
-            if (ImGui.Begin("Hypnotoad", ref visible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoCollapse))
+            ImGui.SetNextWindowSize(new Vector2(300, 110), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowSizeConstraints(new Vector2(300, 110), new Vector2(float.MaxValue, float.MaxValue));
+            if (ImGui.Begin("Hypnotoad", ref visible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
             {
                 // can't ref a property, so use a local copy
                 var configValue = configuration.Autoconnect;
@@ -202,11 +202,7 @@ class PluginUI : IDisposable
                     ManuallyDisconnected = true;
                 }
 
-                ImGui.Text($"Is connected: {Pipe.Client.IsConnected}");
-
-                ImGui.Spacing();
-
-                ImGui.Image(goatImage.ImGuiHandle, new Vector2(goatImage.Width, goatImage.Height));
+                ImGui.Text($"Is connected: {_pipeClient.IsConnected}");
             }
             ImGui.End();
         }
