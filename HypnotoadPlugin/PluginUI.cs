@@ -25,7 +25,6 @@ public class Message
 class PluginUI : IDisposable
 {
     private Timer _reconnectTimer { get; set; } = new();
-    private readonly PipeClient<Message> _pipeClient;
     private Queue<Message> qt = new();
     private Configuration configuration;
 
@@ -47,10 +46,10 @@ class PluginUI : IDisposable
         this.configuration          =  configuration;
         this.goatImage              =  goatImage;
 
-        _pipeClient = new PipeClient<Message>("Hypnotoad", formatter: new NewtonsoftJsonFormatter());
-        _pipeClient.Connected += pipeClient_Connected;
-        _pipeClient.MessageReceived += pipeClient_MessageReceived;
-        _pipeClient.Disconnected += pipeClient_Disconnected;
+        Pipe.Initialize();
+        Pipe.Client.Connected += pipeClient_Connected;
+        Pipe.Client.MessageReceived += pipeClient_MessageReceived;
+        Pipe.Client.Disconnected += pipeClient_Disconnected;
         _reconnectTimer.Elapsed += reconnectTimer_Elapsed;
 
         _reconnectTimer.Interval    =  2000;
@@ -61,7 +60,7 @@ class PluginUI : IDisposable
 
     private void pipeClient_Connected(object sender, ConnectionEventArgs<Message> e)
     {
-        _pipeClient.WriteAsync(new Message
+        Pipe.Client.WriteAsync(new Message
         {
             msgType    = MessageType.Handshake,
             msgChannel = 0,
@@ -69,14 +68,14 @@ class PluginUI : IDisposable
         });
 
 
-        _pipeClient.WriteAsync(new Message
+        Pipe.Client.WriteAsync(new Message
         {
             msgType = MessageType.Version,
             msgChannel = 0,
             message = Environment.ProcessId + ":" + Assembly.GetExecutingAssembly().GetName().Version.ToString()
         });
 
-        _pipeClient.WriteAsync(new Message
+        Pipe.Client.WriteAsync(new Message
         {
             msgType    = MessageType.SetGfx,
             msgChannel = 0,
@@ -98,15 +97,15 @@ class PluginUI : IDisposable
         if (ManuallyDisconnected)
             return;
 
-        if (_pipeClient.IsConnected)
+        if (Pipe.Client.IsConnected)
         {
             _reconnectTimer.Enabled = false;
             return;
         }
 
-        if (!_pipeClient.IsConnecting)
+        if (!Pipe.Client.IsConnecting)
         {
-            _pipeClient.ConnectAsync();
+            Pipe.Client.ConnectAsync();
         }
     }
 
@@ -122,7 +121,7 @@ class PluginUI : IDisposable
                 if (new Version(inMsg.message) > Assembly.GetEntryAssembly().GetName().Version)
                 {
                     ManuallyDisconnected = true;
-                    _pipeClient.DisconnectAsync();
+                    Pipe.Client.DisconnectAsync();
                     PluginLog.LogError($"Hypnotoad is out of date and cannot work with the running bard program.");
                 }
                 break;
@@ -148,8 +147,9 @@ class PluginUI : IDisposable
     public void Dispose()
     {
         ManuallyDisconnected = true;
-        _pipeClient.DisconnectAsync();
-        _pipeClient.DisposeAsync();
+        Pipe.Client.DisconnectAsync();
+        Pipe.Client.DisposeAsync();
+        Pipe.Dispose();
         goatImage.Dispose();
     }
 
@@ -194,10 +194,10 @@ class PluginUI : IDisposable
                 //The disconnect Button
                 if (ImGui.Button("Disconnect"))
                 {
-                    if (!_pipeClient.IsConnected)
+                    if (!Pipe.Client.IsConnected)
                         return;
 
-                    _pipeClient.DisconnectAsync();
+                    Pipe.Client.DisconnectAsync();
 
                     ManuallyDisconnected = true;
                 }

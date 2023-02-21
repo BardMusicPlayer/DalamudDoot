@@ -20,7 +20,9 @@ public enum MessageType
     StartEnsemble = 30,
     AcceptReply = 31,
 
-    Chat = 40
+    Chat = 40,
+
+    NetworkPacket = 50,
 }
 
 public readonly struct ChatMessageChannelType
