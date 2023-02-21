@@ -52,10 +52,12 @@ public class Hypnotoad : IDalamudPlugin
 
         PluginInterface.UiBuilder.Draw         += DrawUI;
         PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
+        NetworkReader.Initialize();
     }
 
     public void Dispose()
     {
+        NetworkReader.Dispose();
         AgentConfigSystem.RestoreObjQuantity();
         AgentConfigSystem.ApplyGraphicSettings();
 
