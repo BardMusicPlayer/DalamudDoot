@@ -202,7 +202,7 @@ class PluginUI : IDisposable
                     ManuallyDisconnected = true;
                 }
 
-                ImGui.Text($"Is connected: {_pipeClient.IsConnected}");
+                ImGui.Text($"Is connected: {Pipe.Client.IsConnected}");
             }
             ImGui.End();
         }
