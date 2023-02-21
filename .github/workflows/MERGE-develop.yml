@@ -62,7 +62,7 @@ jobs:
           echo -e "[" > hypnotoad/index.html
           cat hypnotoad/HypnotoadPlugin.json | sed '$d' >> hypnotoad/index.html
           rm hypnotoad/HypnotoadPlugin.json
-          echo ",\"LoadPriority\": 0,\"IconUrl\": \"https://dl.bardmusicplayer.com/hypnotoad/toad.png\",\"IsHide\": \"False\",\"IsTestingExclusive\": \"False\",\"DownloadCount\": 0,\"LastUpdate\": \"`date +%s`\",\"DownloadLinkInstall\": \"https://dl.bardmusicplayer.com/hypnotoad/latest.zip\",\"DownloadLinkTesting\": \"https://dl.bardmusicplayer.com/hypnotoad/latest.zip\",\"DownloadLinkUpdate\": \"https://dl.bardmusicplayer.com/hypnotoad/latest.zip\"}]" >> hypnotoad/index.html
+          echo ",\"LoadPriority\": 0,\"IconUrl\": \"https://dl.bardmusicplayer.com/hypnotoad/icon.png\",\"IsHide\": \"False\",\"IsTestingExclusive\": \"False\",\"DownloadCount\": 0,\"LastUpdate\": \"`date +%s`\",\"DownloadLinkInstall\": \"https://dl.bardmusicplayer.com/hypnotoad/latest.zip\",\"DownloadLinkTesting\": \"https://dl.bardmusicplayer.com/hypnotoad/latest.zip\",\"DownloadLinkUpdate\": \"https://dl.bardmusicplayer.com/hypnotoad/latest.zip\"}]" >> hypnotoad/index.html
       
       - name: Commit Downloads
         run: |
