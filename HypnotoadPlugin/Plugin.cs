@@ -40,7 +40,7 @@ public class Hypnotoad : IDalamudPlugin
 
         CommandManager.AddHandler(commandName, new CommandInfo(OnCommand)
         {
-            HelpMessage = "A useful message to display in /xlhelp"
+            HelpMessage = "Open the Hypnotoad settings menu."
         });
 
         AgentConfigSystem = new AgentConfigSystem(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.Offsets.AgentConfigSystem));
