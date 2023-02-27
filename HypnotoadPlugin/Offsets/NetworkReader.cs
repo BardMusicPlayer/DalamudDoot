@@ -4,18 +4,25 @@ namespace HypnotoadPlugin.Offsets;
 
 public static unsafe class NetworkReader
 {
-    public static void NetworkMessage(nint dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
+    private static void NetworkMessage(nint dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
     {
         if (direction == NetworkMessageDirection.ZoneDown && Pipe.Client is { IsConnected: true })
-            Pipe.Client.WriteAsync(new Message
+            Pipe.Client.WriteAsync(new PayloadMessage
             {
-                msgType = MessageType.NetworkPacket,
-                message = Environment.ProcessId + ":" + Convert.ToBase64String(GetPacket(dataPtr))
+                MsgType = MessageType.NetworkPacket,
+                Message = Environment.ProcessId + ":" + Convert.ToBase64String(GetPacket(dataPtr))
             });
     }
 
-    internal static void Initialize() => Api.GameNetwork.NetworkMessage += NetworkMessage;
-    internal static void Dispose() => Api.GameNetwork.NetworkMessage -= NetworkMessage;
+    internal static void Initialize()
+    {
+        if (Api.GameNetwork != null) Api.GameNetwork.NetworkMessage += NetworkMessage;
+    }
+
+    internal static void Dispose()
+    {
+        if (Api.GameNetwork != null) Api.GameNetwork.NetworkMessage -= NetworkMessage;
+    }
 
     private static byte[] GetPacket(IntPtr dataPtr)
     {

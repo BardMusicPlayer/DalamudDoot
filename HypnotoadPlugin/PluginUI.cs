@@ -9,129 +9,132 @@ using Timer = System.Timers.Timer;
 
 namespace HypnotoadPlugin;
 
-public class Message
+public class PayloadMessage
 {
-    public MessageType msgType { get; init; } = MessageType.None;
-    public int msgChannel { get; init; }
-    public string message { get; init; } = "";
+    public MessageType MsgType { get; init; } = MessageType.None;
+    public int MsgChannel { get; init; }
+    public string Message { get; init; } = "";
 }
 
 // It is good to have this be disposable in general, in case you ever need it
 // to do any cleanup
-class PluginUI : IDisposable
+internal class PluginUi : IDisposable
 {
-    private Timer _reconnectTimer { get; set; } = new();
-    private Queue<Message> qt = new();
-    private Configuration configuration;
+    private Timer ReconnectTimer { get; set; } = new();
+    private readonly Queue<PayloadMessage> _qt = new();
+    private readonly Configuration _configuration;
 
     // this extra bool exists for ImGui, since you can't ref a property
-    private bool visible;
+    private bool _visible;
     public bool Visible
     {
-        get => visible;
-        set => visible = value;
+        get => _visible;
+        set => _visible = value;
     }
 
-    public bool ManuallyDisconnected { get; set; }
+    private bool ManuallyDisconnected { get; set; }
 
-    public PluginUI(Configuration configuration)
+    public PluginUi(Configuration configuration)
     {
-        this.configuration = configuration;
+        _configuration = configuration;
 
         Pipe.Initialize();
-        Pipe.Client.Connected       += pipeClient_Connected;
-        Pipe.Client.MessageReceived += pipeClient_MessageReceived;
-        Pipe.Client.Disconnected    += pipeClient_Disconnected;
-        _reconnectTimer.Elapsed     += reconnectTimer_Elapsed;
+        if (Pipe.Client != null)
+        {
+            Pipe.Client.Connected       += pipeClient_Connected;
+            Pipe.Client.MessageReceived += pipeClient_MessageReceived;
+            Pipe.Client.Disconnected    += pipeClient_Disconnected;
+        }
 
-        _reconnectTimer.Interval = 2000;
-        _reconnectTimer.Enabled  = configuration.Autoconnect;
+        ReconnectTimer.Elapsed += reconnectTimer_Elapsed;
+
+        ReconnectTimer.Interval = 2000;
+        ReconnectTimer.Enabled  = configuration.AutoConnect;
 
         Visible = false;
     }
 
-    private static void pipeClient_Connected(object sender, ConnectionEventArgs<Message> e)
+    private static void pipeClient_Connected(object? sender, ConnectionEventArgs<PayloadMessage> e)
     {
-        Pipe.Client.WriteAsync(new Message
+        Pipe.Client?.WriteAsync(new PayloadMessage
         {
-            msgType    = MessageType.Handshake,
-            msgChannel = 0,
-            message    = Environment.ProcessId.ToString()
+            MsgType    = MessageType.Handshake,
+            MsgChannel = 0,
+            Message    = Environment.ProcessId.ToString()
         });
 
 
-        Pipe.Client.WriteAsync(new Message
+        Pipe.Client?.WriteAsync(new PayloadMessage
         {
-            msgType    = MessageType.Version,
-            msgChannel = 0,
-            message    = Environment.ProcessId + ":" + Assembly.GetExecutingAssembly().GetName().Version
+            MsgType    = MessageType.Version,
+            MsgChannel = 0,
+            Message    = Environment.ProcessId + ":" + Assembly.GetExecutingAssembly().GetName().Version
         });
 
-        Pipe.Client.WriteAsync(new Message
+        Pipe.Client?.WriteAsync(new PayloadMessage
         {
-            msgType    = MessageType.SetGfx,
-            msgChannel = 0,
-            message    = Environment.ProcessId + ":" + GfxSettings.AgentConfigSystem.CheckLowSettings()
+            MsgType    = MessageType.SetGfx,
+            MsgChannel = 0,
+            Message    = Environment.ProcessId + ":" + GfxSettings.AgentConfigSystem.CheckLowSettings()
         });
     }
 
-    private void pipeClient_Disconnected(object sender, ConnectionEventArgs<Message> e)
+    private void pipeClient_Disconnected(object? sender, ConnectionEventArgs<PayloadMessage> e)
     {
-        if (!configuration.Autoconnect)
+        if (!_configuration.AutoConnect)
             return;
 
-        _reconnectTimer.Interval = 2000;
-        _reconnectTimer.Enabled  = configuration.Autoconnect;
+        ReconnectTimer.Interval = 2000;
+        ReconnectTimer.Enabled  = _configuration.AutoConnect;
     }
 
-    private void reconnectTimer_Elapsed(object sender, ElapsedEventArgs e)
+    private void reconnectTimer_Elapsed(object? sender, ElapsedEventArgs e)
     {
         if (ManuallyDisconnected)
             return;
 
-        if (Pipe.Client.IsConnected)
+        switch (Pipe.Client)
         {
-            _reconnectTimer.Enabled = false;
-            return;
-        }
-
-        if (!Pipe.Client.IsConnecting)
-        {
-            Pipe.Client.ConnectAsync();
+            case { IsConnected: true }:
+                ReconnectTimer.Enabled = false;
+                return;
+            case { IsConnecting: false }:
+                Pipe.Client.ConnectAsync();
+                break;
         }
     }
 
-    private void pipeClient_MessageReceived(object sender, ConnectionMessageEventArgs<Message> e)
+    private void pipeClient_MessageReceived(object? sender, ConnectionMessageEventArgs<PayloadMessage?> e)
     {
         var inMsg = e.Message;
         if (inMsg == null)
             return;
             
-        switch (inMsg.msgType)
+        switch (inMsg.MsgType)
         {
             case MessageType.Version:
-                if (new Version(inMsg.message) > Assembly.GetEntryAssembly()?.GetName().Version)
+                if (new Version(inMsg.Message) > Assembly.GetEntryAssembly()?.GetName().Version)
                 {
                     ManuallyDisconnected = true;
-                    Pipe.Client.DisconnectAsync();
+                    Pipe.Client?.DisconnectAsync();
                     PluginLog.LogError("Hypnotoad is out of date and cannot work with the running bard program.");
                 }
                 break;
             case MessageType.NoteOn:
-                PerformActions.PlayNote(Convert.ToInt16(inMsg.message), true);
+                PerformActions.PlayNote(Convert.ToInt16(inMsg.Message), true);
                 break;
             case MessageType.NoteOff:
-                PerformActions.PlayNote(Convert.ToInt16(inMsg.message), false);
+                PerformActions.PlayNote(Convert.ToInt16(inMsg.Message), false);
                 break;
             case MessageType.ProgramChange:
-                PerformActions.GuitarSwitchTone(Convert.ToInt32(inMsg.message));
+                PerformActions.GuitarSwitchTone(Convert.ToInt32(inMsg.Message));
                 break;
             case MessageType.Chat:
             case MessageType.Instrument:
             case MessageType.AcceptReply:
             case MessageType.SetGfx:
             case MessageType.StartEnsemble:
-                qt.Enqueue(inMsg);
+                _qt.Enqueue(inMsg);
                 break;
         }
     }
@@ -139,8 +142,8 @@ class PluginUI : IDisposable
     public void Dispose()
     {
         ManuallyDisconnected = true;
-        Pipe.Client.DisconnectAsync();
-        Pipe.Client.DisposeAsync();
+        Pipe.Client?.DisconnectAsync();
+        Pipe.Client?.DisposeAsync();
         Pipe.Dispose();
     }
 
@@ -156,79 +159,79 @@ class PluginUI : IDisposable
         DrawMainWindow();
     }
 
-    public void DrawMainWindow()
+    private void DrawMainWindow()
     {
         if (Visible)
         {
             ImGui.SetNextWindowSize(new Vector2(300, 110), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowSizeConstraints(new Vector2(300, 110), new Vector2(float.MaxValue, float.MaxValue));
-            if (ImGui.Begin("Hypnotoad", ref visible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+            if (ImGui.Begin("Hypnotoad", ref _visible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
             {
                 // can't ref a property, so use a local copy
-                var configValue = configuration.Autoconnect;
-                if (ImGui.Checkbox("Autoconnect", ref configValue))
+                var configValue = _configuration.AutoConnect;
+                if (ImGui.Checkbox("AutoConnect", ref configValue))
                 {
-                    configuration.Autoconnect = configValue;
+                    _configuration.AutoConnect = configValue;
                     // can save immediately on change, if you don't want to provide a "Save and Close" button
-                    configuration.Save();
+                    _configuration.Save();
                 }
 
                 //The connect Button
                 if (ImGui.Button("Connect"))
                 {
-                    if (configuration.Autoconnect)
+                    if (_configuration.AutoConnect)
                         ManuallyDisconnected = false;
-                    _reconnectTimer.Interval = 500;
-                    _reconnectTimer.Enabled  = true;
+                    ReconnectTimer.Interval = 500;
+                    ReconnectTimer.Enabled  = true;
                 }
                 ImGui.SameLine();
                 //The disconnect Button
                 if (ImGui.Button("Disconnect"))
                 {
-                    if (!Pipe.Client.IsConnected)
+                    if (Pipe.Client is { IsConnected: false })
                         return;
 
-                    Pipe.Client.DisconnectAsync();
+                    Pipe.Client?.DisconnectAsync();
 
                     ManuallyDisconnected = true;
                 }
 
-                ImGui.Text($"Is connected: {Pipe.Client.IsConnected}");
+                ImGui.Text($"Is connected: {Pipe.Client is { IsConnected: true }}");
             }
             ImGui.End();
         }
 
-        while (qt.Count > 0)
+        while (_qt.Count > 0)
         {
             try
             {
-                var msg = qt.Dequeue();
-                switch (msg.msgType)
+                var msg = _qt.Dequeue();
+                switch (msg.MsgType)
                 {
                     case MessageType.Chat:
-                        var chatMessageChannelType = ChatMessageChannelType.ParseByChannelCode(msg.msgChannel);
+                        var chatMessageChannelType = ChatMessageChannelType.ParseByChannelCode(msg.MsgChannel);
                         if (chatMessageChannelType.Equals(ChatMessageChannelType.None))
-                            Chat.SendMessage(msg.message);
+                            Chat.SendMessage(msg.Message);
                         else
-                            Chat.SendMessage(chatMessageChannelType.ChannelShortCut + " " + msg.message);
+                            Chat.SendMessage(chatMessageChannelType.ChannelShortCut + " " + msg.Message);
                         break;
                     case MessageType.Instrument:
-                        PerformActions.DoPerformAction(Convert.ToUInt32(msg.message));
+                        PerformActions.PerformAction(Convert.ToUInt32(msg.Message));
                         break;
                     case MessageType.AcceptReply:
                         PerformActions.ConfirmReceiveReadyCheck();
                         break;
                     case MessageType.SetGfx:
-                        if (Convert.ToUInt32(msg.message) == 1)
+                        if (Convert.ToUInt32(msg.Message) == 1)
                         {
                             GfxSettings.AgentConfigSystem.GetObjQuantity();
                             GfxSettings.AgentConfigSystem.SetMinimalObjQuantity();
-                            Hypnotoad.AgentConfigSystem.ApplyGraphicSettings();
+                            Hypnotoad.AgentConfigSystem?.ApplyGraphicSettings();
                         }
                         else
                         {
                             GfxSettings.AgentConfigSystem.RestoreObjQuantity();
-                            Hypnotoad.AgentConfigSystem.ApplyGraphicSettings();
+                            Hypnotoad.AgentConfigSystem?.ApplyGraphicSettings();
                         }
                         break;
                     case MessageType.StartEnsemble:

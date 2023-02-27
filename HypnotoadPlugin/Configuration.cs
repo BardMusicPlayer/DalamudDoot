@@ -8,14 +8,14 @@ public class Configuration : IPluginConfiguration
 {
     public int Version { get; set; } = 0;
 
-    public bool Autoconnect { get; set; } = true;
+    public bool AutoConnect { get; set; } = true;
 
     // the below exist just to make saving less cumbersome
 
     [NonSerialized]
-    private DalamudPluginInterface _pluginInterface;
+    private DalamudPluginInterface? _pluginInterface;
 
-    public void Initialize(DalamudPluginInterface pluginInterface)
+    public void Initialize(DalamudPluginInterface? pluginInterface)
     {
         _pluginInterface = pluginInterface;
     }
