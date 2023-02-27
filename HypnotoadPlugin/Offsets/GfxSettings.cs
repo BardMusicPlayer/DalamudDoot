@@ -2,9 +2,6 @@
  * Copyright(c) 2022 Ori @MidiBard2
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Text.SeStringHandling;

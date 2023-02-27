@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using Dalamud.Game.Network;
+﻿using Dalamud.Game.Network;
 
 namespace HypnotoadPlugin.Offsets;
 

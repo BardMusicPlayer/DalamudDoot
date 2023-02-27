@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Reflection;
 using System.Timers;
 using Dalamud.Logging;
 using H.Pipes.Args;
 using HypnotoadPlugin.Offsets;
 using ImGuiNET;
+using Timer = System.Timers.Timer;
 
 namespace HypnotoadPlugin;
 

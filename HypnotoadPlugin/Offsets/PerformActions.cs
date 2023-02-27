@@ -2,10 +2,7 @@
  * Copyright(c) 2022 Ori @MidiBard2
  */
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using Dalamud.Logging;
 using Dalamud.Utility.Signatures;

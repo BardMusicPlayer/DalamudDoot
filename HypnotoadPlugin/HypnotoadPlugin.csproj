@@ -7,7 +7,10 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
 
+  <PropertyGroup>
     <Description>BardMusicPlayer &amp; LightAmp companion for enhanced functionality.</Description>
     <PackageProjectUrl>https://github.com/BardMusicPlayer/Hypnotoad-Plugin</PackageProjectUrl>
     <Version>0.0.1.11</Version>
