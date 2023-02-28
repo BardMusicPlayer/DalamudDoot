@@ -2,10 +2,7 @@
  * Copyright(c) 2022 Ori @MidiBard2
  */
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using Dalamud.Logging;
 using Dalamud.Utility.Signatures;
@@ -15,35 +12,36 @@ namespace HypnotoadPlugin.Offsets;
 
 public class PerformActions
 {
-    internal delegate void DoPerformActionDelegate(nint performInfoPtr, uint instrumentId, int a3 = 0);
-    private static DoPerformActionDelegate doPerformAction { get; } = Marshal.GetDelegateForFunctionPointer<DoPerformActionDelegate>(Offsets.DoPerformAction);
-    public static void DoPerformAction(uint instrumentId)
+    private delegate void DoPerformActionDelegate(nint performInfoPtr, uint instrumentId, int a3 = 0);
+    private static DoPerformActionDelegate DoPerformAction { get; } = Marshal.GetDelegateForFunctionPointer<DoPerformActionDelegate>(Offsets.DoPerformAction);
+    public static void PerformAction(uint instrumentId)
     {
-        PluginLog.Information($"[DoPerformAction] instrumentId: {instrumentId}");
-        doPerformAction(Offsets.PerformanceStructPtr, instrumentId);
+        PluginLog.Information($"[PerformAction] instrumentId: {instrumentId}");
+        DoPerformAction(Offsets.PerformanceStructPtr, instrumentId);
     }
 
     private PerformActions() { }
     private static unsafe nint GetWindowByName(string s) => (nint)AtkStage.GetSingleton()->RaptureAtkUnitManager->GetAddonByName(s);
-    public static void init() => SignatureHelper.Initialise(new PerformActions());
-    public static void SendAction(nint ptr, params ulong[] param)
+    public static void Init() => SignatureHelper.Initialise(new PerformActions());
+
+    private static void SendAction(nint ptr, params ulong[] param)
     {
         if (param.Length % 2 != 0) 
             throw new ArgumentException("The parameter length must be an integer multiple of 2.");
         if (ptr == nint.Zero) 
             throw new ArgumentException("input pointer is null");
 
-        var paircount = param.Length / 2;
+        var pairCount = param.Length / 2;
         unsafe
         {
             fixed (ulong* u = param)
             {
-                AtkUnitBase.MemberFunctionPointers.FireCallback((AtkUnitBase*)ptr, paircount, (AtkValue*)u, (void*)1);
+                AtkUnitBase.MemberFunctionPointers.FireCallback((AtkUnitBase*)ptr, pairCount, (AtkValue*)u, (void*)1);
             }
         }
     }
 
-    public static bool SendAction(string name, params ulong[] param)
+    private static bool SendAction(string name, params ulong[] param)
     {
         var ptr = GetWindowByName(name);
         if (ptr == nint.Zero) return false;
@@ -51,7 +49,7 @@ public class PerformActions
         return true;
     }
 
-    public static bool PressKey(int keynumber, ref int offset, ref int octave)
+    private static bool PressKey(int keyNumber, ref int offset, ref int octave)
     {
         if (!TargetWindowPtr(out var miniMode, out var targetWindowPtr)) return false;
         offset = 0;
@@ -59,60 +57,60 @@ public class PerformActions
 
         if (miniMode)
         {
-            keynumber = ConvertMiniKeyNumber(keynumber, ref offset, ref octave);
+            keyNumber = ConvertMiniKeyNumber(keyNumber, ref offset, ref octave);
         }
 
-        SendAction(targetWindowPtr, 3, 1, 4, (ulong)keynumber);
+        SendAction(targetWindowPtr, 3, 1, 4, (ulong)keyNumber);
 
         return true;
 
     }
 
-    public static bool ReleaseKey(int keynumber)
+    private static bool ReleaseKey(int keyNumber)
     {
         if (!TargetWindowPtr(out var miniMode, out var targetWindowPtr)) return false;
-        if (miniMode) keynumber = ConvertMiniKeyNumber(keynumber);
+        if (miniMode) keyNumber = ConvertMiniKeyNumber(keyNumber);
 
-        SendAction(targetWindowPtr, 3, 2, 4, (ulong)keynumber);
+        SendAction(targetWindowPtr, 3, 2, 4, (ulong)keyNumber);
 
         return true;
 
     }
 
-    private static int ConvertMiniKeyNumber(int keynumber)
+    private static int ConvertMiniKeyNumber(int keyNumber)
     {
-        keynumber -= 12;
-        switch (keynumber)
+        keyNumber -= 12;
+        switch (keyNumber)
         {
             case < 0:
-                keynumber += 12;
+                keyNumber += 12;
                 break;
             case > 12:
-                keynumber -= 12;
+                keyNumber -= 12;
                 break;
         }
 
-        return keynumber;
+        return keyNumber;
     }
 
-    private static int ConvertMiniKeyNumber(int keynumber, ref int offset, ref int octave)
+    private static int ConvertMiniKeyNumber(int keyNumber, ref int offset, ref int octave)
     {
-        keynumber -= 12;
-        switch (keynumber)
+        keyNumber -= 12;
+        switch (keyNumber)
         {
             case < 0:
-                keynumber += 12;
+                keyNumber += 12;
                 offset    =  -12;
                 octave    =  -1;
                 break;
             case > 12:
-                keynumber -= 12;
+                keyNumber -= 12;
                 offset    =  12;
                 octave    =  1;
                 break;
         }
 
-        return keynumber;
+        return keyNumber;
     }
 
     private static bool TargetWindowPtr(out bool miniMode, out nint targetWindowPtr)
@@ -167,11 +165,11 @@ public class PerformActions
     {
         if (on)
         {
-            if (Hypnotoad.AgentPerformance.noteNumber - 39 == noteNum)
+            if (Hypnotoad.AgentPerformance != null && Hypnotoad.AgentPerformance.NoteNumber - 39 == noteNum)
                 if (ReleaseKey(noteNum))
                     Hypnotoad.AgentPerformance.Struct->CurrentPressingNote = -100;
 
-            if (PressKey(noteNum, ref Hypnotoad.AgentPerformance.Struct->NoteOffset, ref Hypnotoad.AgentPerformance.Struct->OctaveOffset))
+            if (Hypnotoad.AgentPerformance != null && PressKey(noteNum, ref Hypnotoad.AgentPerformance.Struct->NoteOffset, ref Hypnotoad.AgentPerformance.Struct->OctaveOffset))
             {
                 Hypnotoad.AgentPerformance.Struct->CurrentPressingNote = noteNum + 39;
             }
@@ -179,12 +177,12 @@ public class PerformActions
         }
         else
         {
-            if (Hypnotoad.AgentPerformance.Struct->CurrentPressingNote - 39 != noteNum)
+            if (Hypnotoad.AgentPerformance != null && Hypnotoad.AgentPerformance.Struct->CurrentPressingNote - 39 != noteNum)
                 return;
 
             if (ReleaseKey(noteNum))
             {
-                Hypnotoad.AgentPerformance.Struct->CurrentPressingNote = -100;
+                if (Hypnotoad.AgentPerformance != null) Hypnotoad.AgentPerformance.Struct->CurrentPressingNote = -100;
             }
         }
     }

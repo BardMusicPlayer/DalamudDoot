@@ -1,7 +1,5 @@
-﻿using System.IO;
-using Dalamud.Game;
+﻿using Dalamud.Game;
 using Dalamud.Game.Command;
-using Dalamud.Game.Gui;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using HypnotoadPlugin.Offsets;
@@ -14,19 +12,19 @@ public class Hypnotoad : IDalamudPlugin
     //public static XivCommonBase CBase;
     public string Name => "Hypnotoad";
 
-    private const string commandName = "/hypnotoad";
+    private const string CommandName = "/hypnotoad";
 
-    private DalamudPluginInterface PluginInterface { get; init; }
-    private CommandManager CommandManager { get; init; }
-    private Configuration Configuration { get; init; }
-    private PluginUI PluginUi { get; init; }
-    internal static AgentConfigSystem AgentConfigSystem { get; set; }
-    internal static AgentPerformance AgentPerformance { get; set; }
+    private DalamudPluginInterface PluginInterface { get; }
+    private CommandManager CommandManager { get; }
+    private Configuration Configuration { get; }
+    private PluginUi PluginUi { get; }
+    internal static AgentConfigSystem? AgentConfigSystem { get; private set; }
+    internal static AgentPerformance? AgentPerformance { get; private set; }
 
-    [PluginService]
-    public static SigScanner SigScanner { get; private set; }
+    [PluginService] 
+    private static SigScanner? SigScanner { get; set; }
 
-    public Hypnotoad(DalamudPluginInterface pluginInterface, CommandManager commandManager, ChatGui chatGui)
+    public Hypnotoad(DalamudPluginInterface pluginInterface, CommandManager commandManager)
     {
         Api.Initialize(this, pluginInterface);
         PluginInterface = pluginInterface;
@@ -37,21 +35,19 @@ public class Hypnotoad : IDalamudPlugin
         OffsetManager.Setup(SigScanner);
 
         // you might normally want to embed resources and load them from the manifest stream
-        var imagePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "icon.png");
-        var goatImage = PluginInterface.UiBuilder.LoadImage(imagePath);
-        PluginUi = new PluginUI(Configuration, goatImage);
+        PluginUi = new PluginUi(Configuration);
 
-        CommandManager.AddHandler(commandName, new CommandInfo(OnCommand)
+        CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
-            HelpMessage = "A useful message to display in /xlhelp"
+            HelpMessage = "Open the Hypnotoad settings menu."
         });
 
         AgentConfigSystem = new AgentConfigSystem(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.Offsets.AgentConfigSystem));
         AgentPerformance  = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.Offsets.AgentPerformance));
         AgentConfigSystem.GetObjQuantity();
 
-        PluginInterface.UiBuilder.Draw         += DrawUI;
-        PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
+        PluginInterface.UiBuilder.Draw         += DrawUi;
+        PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUi;
         NetworkReader.Initialize();
     }
 
@@ -59,10 +55,10 @@ public class Hypnotoad : IDalamudPlugin
     {
         NetworkReader.Dispose();
         AgentConfigSystem.RestoreObjQuantity();
-        AgentConfigSystem.ApplyGraphicSettings();
+        AgentConfigSystem?.ApplyGraphicSettings();
 
         PluginUi.Dispose();
-        CommandManager.RemoveHandler(commandName);
+        CommandManager.RemoveHandler(CommandName);
     }
 
     private void OnCommand(string command, string args)
@@ -71,12 +67,12 @@ public class Hypnotoad : IDalamudPlugin
         PluginUi.Visible = true;
     }
 
-    private void DrawUI()
+    private void DrawUi()
     {
         PluginUi.Draw();
     }
 
-    private void DrawConfigUI()
+    private void DrawConfigUi()
     {
         PluginUi.Visible = true;
     }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
@@ -32,101 +29,101 @@ public class Api
 {
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static DalamudPluginInterface PluginInterface { get; private set; }
+    public static DalamudPluginInterface? PluginInterface { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static BuddyList BuddyList { get; private set; }
+    public static BuddyList? BuddyList { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static ChatGui ChatGui { get; private set; }
+    public static ChatGui? ChatGui { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static ChatHandlers ChatHandlers { get; private set; }
+    public static ChatHandlers? ChatHandlers { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static ClientState ClientState { get; private set; }
+    public static ClientState? ClientState { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static CommandManager CommandManager { get; private set; }
+    public static CommandManager? CommandManager { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static Condition Condition { get; private set; }
+    public static Condition? Condition { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static DataManager DataManager { get; private set; }
+    public static DataManager? DataManager { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static FateTable FateTable { get; private set; }
+    public static FateTable? FateTable { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static FlyTextGui FlyTextGui { get; private set; }
+    public static FlyTextGui? FlyTextGui { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static Framework Framework { get; private set; }
+    public static Framework? Framework { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static GameGui GameGui { get; private set; }
+    public static GameGui? GameGui { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static GameNetwork GameNetwork { get; private set; }
+    public static GameNetwork? GameNetwork { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static JobGauges JobGauges { get; private set; }
+    public static JobGauges? JobGauges { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static KeyState KeyState { get; private set; }
+    public static KeyState? KeyState { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static LibcFunction LibcFunction { get; private set; }
+    public static LibcFunction? LibcFunction { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static ObjectTable ObjectTable { get; private set; }
+    public static ObjectTable? ObjectTable { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static PartyFinderGui PartyFinderGui { get; private set; }
+    public static PartyFinderGui? PartyFinderGui { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static PartyList PartyList { get; private set; }
+    public static PartyList? PartyList { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static SigScanner SigScanner { get; private set; }
+    public static SigScanner? SigScanner { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static TargetManager TargetManager { get; private set; }
+    public static TargetManager? TargetManager { get; private set; }
 
     [PluginService]
     //[RequiredVersion("1.0")]
-    public static ToastGui ToastGui { get; private set; }
+    public static ToastGui? ToastGui { get; private set; }
 
-    private static PluginCommandManager<IDalamudPlugin> _pluginCommandManager;
+    private static PluginCommandManager<IDalamudPlugin>? _pluginCommandManager;
 
     public Api() { }
 
     public Api(IDalamudPlugin plugin) => _pluginCommandManager ??= new PluginCommandManager<IDalamudPlugin>(plugin);
 
-    public Api(IDalamudPlugin plugin, DalamudPluginInterface pluginInterface)
+    private Api(IDalamudPlugin plugin, DalamudPluginInterface? pluginInterface)
     {
-        if (!pluginInterface.Inject(this))
+        if (pluginInterface != null && !pluginInterface.Inject(this))
         {
             PluginLog.LogError("Failed loading DalamudApi!");
             return;
@@ -147,7 +144,7 @@ public class Api
         throw new InvalidOperationException();
     }
 
-    public static void Initialize(IDalamudPlugin plugin, DalamudPluginInterface pluginInterface) => _ = new Api(plugin, pluginInterface);
+    public static void Initialize(IDalamudPlugin plugin, DalamudPluginInterface? pluginInterface) => _ = new Api(plugin, pluginInterface);
 
     public static void Dispose() => _pluginCommandManager?.Dispose();
 }
@@ -172,13 +169,13 @@ public class PluginCommandManager<T> : IDisposable where T : IDalamudPlugin
     private void AddCommandHandlers()
     {
         foreach (var (command, commandInfo) in _pluginCommands)
-            Api.CommandManager.AddHandler(command, commandInfo);
+            Api.CommandManager?.AddHandler(command, commandInfo);
     }
 
     private void RemoveCommandHandlers()
     {
         foreach (var (command, _) in _pluginCommands)
-            Api.CommandManager.RemoveHandler(command);
+            Api.CommandManager?.RemoveHandler(command);
     }
 
     private IEnumerable<(string, CommandInfo)> GetCommandInfoTuple(MethodInfo method)
@@ -197,7 +194,7 @@ public class PluginCommandManager<T> : IDisposable where T : IDalamudPlugin
         };
 
         // Create list of tuples that will be filled with one tuple per alias, in addition to the base command tuple.
-        var commandInfoTuples = new List<(string, CommandInfo)> { (command?.Command, commandInfo) };
+        var commandInfoTuples = new List<(string, CommandInfo)> { (command?.Command, commandInfo)! };
         if (aliases != null)
             commandInfoTuples.AddRange(aliases.Aliases.Select(alias => (alias, commandInfo)));
 
@@ -214,38 +211,38 @@ public class PluginCommandManager<T> : IDisposable where T : IDalamudPlugin
 
 #region Attributes
 [AttributeUsage(AttributeTargets.Method)]
-public class AliasesAttribute : Attribute
+public abstract class AliasesAttribute : Attribute
 {
     public string[] Aliases { get; }
 
-    public AliasesAttribute(params string[] aliases)
+    protected AliasesAttribute(params string[] aliases)
     {
         Aliases = aliases;
     }
 }
 
 [AttributeUsage(AttributeTargets.Method)]
-public class CommandAttribute : Attribute
+public abstract class CommandAttribute : Attribute
 {
     public string Command { get; }
 
-    public CommandAttribute(string command)
+    protected CommandAttribute(string command)
     {
         Command = command;
     }
 }
 
 [AttributeUsage(AttributeTargets.Method)]
-public class DoNotShowInHelpAttribute : Attribute
+public abstract class DoNotShowInHelpAttribute : Attribute
 {
 }
 
 [AttributeUsage(AttributeTargets.Method)]
-public class HelpMessageAttribute : Attribute
+public abstract class HelpMessageAttribute : Attribute
 {
     public string HelpMessage { get; }
 
-    public HelpMessageAttribute(string helpMessage)
+    protected HelpMessageAttribute(string helpMessage)
     {
         HelpMessage = helpMessage;
     }

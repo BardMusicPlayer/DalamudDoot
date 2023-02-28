@@ -1,21 +1,19 @@
 ﻿using H.Formatters;
 using H.Pipes;
-using System.ComponentModel.Design;
 
-namespace HypnotoadPlugin
+namespace HypnotoadPlugin;
+
+internal static class Pipe
 {
-    internal static class Pipe
+    internal static PipeClient<PayloadMessage>? Client { get; private set; }
+
+    internal static void Initialize()
     {
-        internal static PipeClient<Message> Client { get; private set; }
+        Client = new PipeClient<PayloadMessage>("Hypnotoad", formatter: new NewtonsoftJsonFormatter());
+    }
 
-        internal static void Initialize()
-        {
-            Client = new PipeClient<Message>("Hypnotoad", formatter: new NewtonsoftJsonFormatter());
-        }
+    internal static void Dispose()
+    {
 
-        internal static void Dispose()
-        {
-
-        }
     }
 }

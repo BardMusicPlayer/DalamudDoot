@@ -2,9 +2,6 @@
  * Copyright(c) 2022 Ori @MidiBard2
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Dalamud.Game;
@@ -14,7 +11,7 @@ namespace HypnotoadPlugin.Offsets;
 
 public static class OffsetManager
 {
-    public static void Setup(SigScanner scanner)
+    public static void Setup(SigScanner? scanner)
     {
         var props = typeof(Offsets).GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
             .Select(i => (prop: i, Attribute: i.GetCustomAttribute<SigAttribute>())).Where(i => i.Attribute != null);
@@ -24,22 +21,22 @@ public static class OffsetManager
         {
             try
             {
-                var sig = sigAttribute.SigString;
-                sig = string.Join(' ', sig.Split(new[] { ' ' }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                    .Select(i => i == "?" ? "??" : i));
+                var sig = sigAttribute?.SigString;
+                sig = string.Join(' ', sig?.Split(new[] { ' ' }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                    .Select(i => i == "?" ? "??" : i)!);
 
-                nint address;
+                nint address = 0;
                 switch (sigAttribute)
                 {
                     case StaticAddressAttribute:
-                        address = scanner.GetStaticAddressFromSig(sig);
+                        if (scanner != null) address = scanner.GetStaticAddressFromSig(sig);
                         break;
                     case FunctionAttribute:
-                        address = scanner.ScanText(sig);
+                        if (scanner != null) address = scanner.ScanText(sig);
                         break;
                     case OffsetAttribute:
                     {
-                        address =  scanner.ScanText(sig);
+                        if (scanner != null) address = scanner.ScanText(sig);
                         address += sigAttribute.Offset;
                         var structure = Marshal.PtrToStructure(address, propertyInfo.PropertyType);
                         propertyInfo.SetValue(null, structure);
@@ -47,7 +44,7 @@ public static class OffsetManager
                         continue;
                     }
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException(null);
                 }
 
                 address += sigAttribute.Offset;
@@ -57,7 +54,7 @@ public static class OffsetManager
             }
             catch (Exception e)
             {
-                PluginLog.Error(e, $"[{nameof(OffsetManager)}][{propertyInfo?.Name}] failed to find sig : {sigAttribute?.SigString}");
+                PluginLog.Error(e, $"[{nameof(OffsetManager)}][{propertyInfo.Name}] failed to find sig : {sigAttribute?.SigString}");
                 exceptions.Add(e);
             }
         }

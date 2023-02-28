@@ -57,26 +57,26 @@ public static class Offsets
 public sealed unsafe class AgentPerformance : AgentInterface
 {
     public AgentPerformance(AgentInterface agentInterface) : base(agentInterface.Pointer, agentInterface.Id) { }
-    public static AgentPerformance Instance => Hypnotoad.AgentPerformance;
+    public static AgentPerformance? Instance => Hypnotoad.AgentPerformance;
     public new AgentPerformanceStruct* Struct => (AgentPerformanceStruct*)Pointer;
 
     [StructLayout(LayoutKind.Explicit)]
     public struct AgentPerformanceStruct
     {
-        [FieldOffset(0)] public FFXIVClientStructs.FFXIV.Component.GUI.AgentInterface AgentInterface;
-        [FieldOffset(0x20)] public byte InPerformanceMode;
-        [FieldOffset(0x38)] public long PerformanceTimer1;
-        [FieldOffset(0x40)] public long PerformanceTimer2;
+        [FieldOffset(0)] private readonly FFXIVClientStructs.FFXIV.Component.GUI.AgentInterface AgentInterface;
+        [FieldOffset(0x20)] public readonly byte InPerformanceMode;
+        [FieldOffset(0x38)] public readonly long PerformanceTimer1;
+        [FieldOffset(0x40)] public readonly long PerformanceTimer2;
         [FieldOffset(0x5C)] public int NoteOffset;
         [FieldOffset(0x60)] public int CurrentPressingNote;
         [FieldOffset(0xFC)] public int OctaveOffset;
-        [FieldOffset(0x1B0)] public int GroupTone;
+        [FieldOffset(0x1B0)] public readonly int GroupTone;
     }
 
     internal int CurrentGroupTone => Struct->GroupTone;
     internal bool InPerformanceMode => Struct->InPerformanceMode != 0;
-    internal bool notePressed => Struct->CurrentPressingNote != -100;
-    internal int noteNumber => Struct->CurrentPressingNote;
+    internal bool NotePressed => Struct->CurrentPressingNote != -100;
+    internal int NoteNumber => Struct->CurrentPressingNote;
     internal long PerformanceTimer1 => Struct->PerformanceTimer1;
     internal long PerformanceTimer2 => Struct->PerformanceTimer2;
 }

@@ -23,7 +23,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -40,22 +39,22 @@ public static partial class Chat
 {
     private delegate void ProcessChatBoxDelegate(nint uiModule, nint message, nint unused, byte a4);
 
-    private static ProcessChatBoxDelegate ProcessChatBox { get; }
+    private static ProcessChatBoxDelegate? ProcessChatBox { get; }
 
-    private static readonly unsafe delegate* unmanaged<Utf8String*, int, nint, void> _sanitiseString = null!;
+    private static readonly unsafe delegate* unmanaged<Utf8String*, int, nint, void> SanitizeString = null!;
 
     static Chat()
     {
-        if (Api.SigScanner.TryScanText(Signatures.SendChat, out var processChatBoxPtr))
+        if (Api.SigScanner != null && Api.SigScanner.TryScanText(Signatures.SendChat, out var processChatBoxPtr))
         {
             ProcessChatBox = Marshal.GetDelegateForFunctionPointer<ProcessChatBoxDelegate>(processChatBoxPtr);
         }
 
         unsafe
         {
-            if (Api.SigScanner.TryScanText(Signatures.SanitiseString, out var sanitisePtr))
+            if (Api.SigScanner != null && Api.SigScanner.TryScanText(Signatures.SanitiseString, out var sanitisePtr))
             {
-                _sanitiseString = (delegate* unmanaged<Utf8String*, int, nint, void>)sanitisePtr;
+                SanitizeString = (delegate* unmanaged<Utf8String*, int, nint, void>)sanitisePtr;
             }
         }
     }
@@ -73,7 +72,7 @@ public static partial class Chat
     /// </summary>
     /// <param name="message">Message to send</param>
     /// <exception cref="InvalidOperationException">If the signature for this function could not be found</exception>
-    public static unsafe void SendMessageUnsafe(byte[] message)
+    private static unsafe void SendMessageUnsafe(byte[] message)
     {
         if (ProcessChatBox == null)
         {
@@ -93,7 +92,7 @@ public static partial class Chat
 
     public static void SendMessage(string message)
     {
-        Api.Framework.RunOnTick(() => SendMessageInternal(message));
+        Api.Framework?.RunOnTick(() => SendMessageInternal(message));
     }
 
     /// <summary>
@@ -141,16 +140,16 @@ public static partial class Chat
     /// <param name="text">text to sanitise</param>
     /// <returns>sanitised text</returns>
     /// <exception cref="InvalidOperationException">If the signature for this function could not be found</exception>
-    public static unsafe string SanitiseText(string text)
+    private static unsafe string SanitiseText(string text)
     {
-        if (_sanitiseString == null)
+        if (SanitizeString == null)
         {
-            throw new InvalidOperationException("Could not find signature for chat sanitisation");
+            throw new InvalidOperationException("Could not find signature for chat sanitization");
         }
 
         var uText = Utf8String.FromString(text);
 
-        _sanitiseString(uText, 0x27F, nint.Zero);
+        SanitizeString(uText, 0x27F, nint.Zero);
         var sanitised = uText->ToString();
 
         uText->Dtor();
