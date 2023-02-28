@@ -32,11 +32,13 @@ jobs:
         path: .\Downloads
 
     - name: Update plugin repo json
+      shell: bash
       run: |
         echo -e "[" > ./Downloads/hypnotoad/index.html
         cat ./HypnotoadPlugin/bin/x64/Release/HypnotoadPlugin/HypnotoadPlugin.json | sed '$d' >> ./Downloads/hypnotoad/index.html
         echo ",\"LoadPriority\": 0,\"IconUrl\": \"https://dl.bardmusicplayer.com/hypnotoad/icon.png\",\"IsHide\": \"False\",\"IsTestingExclusive\": \"False\",\"DownloadCount\": 0,\"LastUpdate\": \"`date +%s`\",\"DownloadLinkInstall\": \"https://dl.bardmusicplayer.com/hypnotoad/latest.zip\",\"DownloadLinkTesting\": \"https://dl.bardmusicplayer.com/hypnotoad/latest.zip\",\"DownloadLinkUpdate\": \"https://dl.bardmusicplayer.com/hypnotoad/latest.zip\"}]" >> ./Downloads/hypnotoad/index.html
-      
+        yes | cp -rf ./HypnotoadPlugin/bin/x64/Release/HypnotoadPlugin/latest.zip ./Downloads/hypnotoad/
+
     - name: Commit Downloads
       shell: bash
       working-directory: .\Downloads
