@@ -1,6 +1,6 @@
 # Hypnotoad Plugin
 
-BardMusicPlayer & LightAmp can be used with the [Hypnotoad](https://github.com/BardMusicPlayer/Hypnotoad-Plugin) companion plugin for enhanced functionality.
+BardMusicPlayer & LightAmp can be used with the [Hypnotoad](https://github.com/Meowchestra/Hypnotoad-Plugin) companion plugin for enhanced functionality.
 
 <details>
 <summary>Enhanced Features</summary>
