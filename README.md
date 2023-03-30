@@ -19,4 +19,4 @@ BardMusicPlayer & LightAmp can be used with the [Hypnotoad](https://github.com/M
 
 Copy this url to your dalamud settings experimental custom plugin repositories and search for the hypnotoad plugin.
 
-`https://dl.bardmusicplayer.com/hypnotoad/`
+`https://raw.githubusercontent.com/Meowchestra/Hypnotoad-Plugin/develop/data/pluginmaster.json`
