@@ -27,9 +27,13 @@ jobs:
     - name: Move latest build to Release
       run: Move-Item -Path ./HypnotoadPlugin/bin/x64/Release/HypnotoadPlugin -Destination ./data -Force
 
+    - name: Stage files for commit
+      run: |
+        git add ./data/HypnotoadPlugin.json
+        git add ./data/latest.zip
+
     - name: Commit latest build
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
         commit_message: "Update Build"
-        file_pattern: "./Hypnotoad-Plugin/data/(HypnotoadPlugin\\.json|latest\\.zip)"
         branch: develop
