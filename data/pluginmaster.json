@@ -1,0 +1,31 @@
+[
+    {
+        "Author": "GiR-Zippo, Meowchestra, MoogleTroupe",
+        "Name": "HypnotoadPlugin",
+        "InternalName": "HypnotoadPlugin",
+        "AssemblyVersion": "0.0.1.12",
+        "Description": "BardMusicPlayer & LightAmp companion for enhanced functionality.",
+        "ApplicableVersion": "any",
+        "Tags": [
+            "BardMusicPlayer",
+            "LightAmp",
+            "BMP",
+            "Midi",
+            "Bard",
+            "Doot"
+        ],
+        "DalamudApiLevel": 8,
+        "LoadRequiredState": 0,
+        "LoadPriority": 0,
+        "LoadSync": "false",
+        "IconUrl": "https://raw.githubusercontent.com/Meowchestra/Hypnotoad-Plugin/develop/data/icon.png",
+        "Punchline": "Companion plugin for enhanced functionality.",
+        "IsHide": "false",
+        "IsTestingExclusive": "false",
+        "AcceptsFeedback": "false",
+        "LastUpdate": "0",
+        "DownloadLinkInstall": "https://raw.githubusercontent.com/Meowchestra/Hypnotoad-Plugin/develop/data/latest.zip",
+        "DownloadLinkTesting": "https://raw.githubusercontent.com/Meowchestra/Hypnotoad-Plugin/develop/data/latest.zip",
+        "DownloadLinkUpdate": "https://raw.githubusercontent.com/Meowchestra/Hypnotoad-Plugin/develop/data/latest.zip"
+    }
+]

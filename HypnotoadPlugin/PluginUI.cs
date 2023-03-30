@@ -24,6 +24,8 @@ internal class PluginUi : IDisposable
     private readonly Queue<PayloadMessage> _qt = new();
     private readonly Configuration _configuration;
 
+    private bool PerformanceModeOpen { get; set; } = false;
+
     // this extra bool exists for ImGui, since you can't ref a property
     private bool _visible;
     public bool Visible
@@ -77,6 +79,8 @@ internal class PluginUi : IDisposable
             MsgChannel = 0,
             Message    = Environment.ProcessId + ":" + GfxSettings.AgentConfigSystem.CheckLowSettings()
         });
+
+        Collector.Instance.UpdateClientStats();
     }
 
     private void pipeClient_Disconnected(object? sender, ConnectionEventArgs<PayloadMessage> e)
@@ -142,8 +146,18 @@ internal class PluginUi : IDisposable
     public void Dispose()
     {
         ManuallyDisconnected = true;
-        Pipe.Client?.DisconnectAsync();
-        Pipe.Client?.DisposeAsync();
+
+        if (Pipe.Client != null)
+        {
+            Pipe.Client.Connected       -= pipeClient_Connected;
+            Pipe.Client.MessageReceived -= pipeClient_MessageReceived;
+            Pipe.Client.Disconnected    -= pipeClient_Disconnected;
+            ReconnectTimer.Elapsed      -= reconnectTimer_Elapsed;
+
+            Pipe.Client.DisconnectAsync();
+            Pipe.Client.DisposeAsync();
+        }
+
         Pipe.Dispose();
     }
 
@@ -201,6 +215,21 @@ internal class PluginUi : IDisposable
             ImGui.End();
         }
 
+        //Check performance state
+        /*if (Hypnotoad.AgentPerformance != null && Hypnotoad.AgentPerformance.InPerformanceMode != performanceModeOpen)
+        {
+            performanceModeOpen = Hypnotoad.AgentPerformance.InPerformanceMode;
+            if (Pipe.Client != null && Pipe.Client.IsConnected)
+            {
+                Pipe.Client.WriteAsync(new PayloadMessage()
+                {
+                    MsgType = MessageType.PerformanceModeState,
+                    Message = Environment.ProcessId + ":" + Hypnotoad.AgentPerformance.Instrument.ToString()
+                });
+            }
+        }*/
+
+        //Do the in queue
         while (_qt.Count > 0)
         {
             try
