@@ -22,14 +22,14 @@ jobs:
         Expand-Archive -Force latest.zip "$env:AppData\XIVLauncher\addon\Hooks\dev"
 
     - name: Build with dotnet
-      run: dotnet publish --configuration Release
+      run: dotnet build --configuration Release
 
     - name: Move latest build to Release
-      run: Move-Item -Path ./HypnotoadPlugin/bin/x64/Release/HypnotoadPlugin -Destination ./HypnotoadPlugin/data -Force
+      run: Move-Item -Path ./Hypnotoad-Plugin/HypnotoadPlugin/bin/x64/Release/HypnotoadPlugin -Destination ./Hypnotoad-Plugin/data -Force
 
     - name: Commit latest build
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
         commit_message: "Update Build"
-        file_pattern: "./HypnotoadPlugin/data/(HypnotoadPlugin\\.json|latest\\.zip)"
+        file_pattern: "./Hypnotoad-Plugin/data/(HypnotoadPlugin\\.json|latest\\.zip)"
         branch: develop
