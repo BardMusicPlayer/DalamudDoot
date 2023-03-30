@@ -29,8 +29,8 @@ jobs:
 
     - name: Stage files for commit
       run: |
-        git add ./Hypnotoad-Plugin/data/HypnotoadPlugin.json
-        git add ./Hypnotoad-Plugin/data/latest.zip
+        git add ./data/HypnotoadPlugin.json
+        git add ./data/latest.zip
 
     - name: Commit latest build
       uses: stefanzweifel/git-auto-commit-action@v4
