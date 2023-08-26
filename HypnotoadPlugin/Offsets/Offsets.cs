@@ -23,7 +23,7 @@ public static partial class Chat
 
 public static class Offsets
 {
-    [StaticAddress("48 8D 05 ?? ?? ?? ?? 48 8B F9 48 89 01 48 8D 05 ?? ?? ?? ?? 48 89 41 28 48 8B 49 48")]
+    [StaticAddress("48 8D 05 ?? ?? ?? ?? 48 8B ?? 48 89 01 48 8D 05 ?? ?? ?? ?? 48 89 41 28 48 8B 49 48")]
     public static nint AgentPerformance { get; private set; }
 
     [StaticAddress("48 8D 05 ?? ?? ?? ?? 48 89 03 48 8D 4B 40")]
@@ -43,9 +43,6 @@ public static class Offsets
 
     [Function("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 0F B6 FA 48 8B D9 84 D2 ")]
     public static nint UpdateMetronome { get; private set; }
-
-    /*[Function("83 FA 04 77 4E")]
-        public static IntPtr UISetTone { get; private set; }*/
 
     [Function("48 8B C4 56 48 81 EC ?? ?? ?? ?? 48 89 58 10 ")]
     public static nint ApplyGraphicConfigsFunc { get; private set; }

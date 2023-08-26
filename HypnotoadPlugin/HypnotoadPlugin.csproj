@@ -14,7 +14,7 @@
   <PropertyGroup>
     <Description>BardMusicPlayer &amp; LightAmp companion for enhanced functionality.</Description>
     <PackageProjectUrl>https://github.com/BardMusicPlayer/Hypnotoad-Plugin</PackageProjectUrl>
-    <Version>0.0.1.11</Version>
+    <Version>0.0.1.12</Version>
   </PropertyGroup>
 
   <PropertyGroup>
