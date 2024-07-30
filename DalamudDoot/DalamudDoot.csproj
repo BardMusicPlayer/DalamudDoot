@@ -36,10 +36,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\data\icon.png" CopyToOutputDirectory="PreserveNewest" Visible="false" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="DalamudPackager" Version="2.1.13" />
     <PackageReference Include="H.Formatters.Newtonsoft.Json" Version="13.0.59" />
     <PackageReference Include="H.Pipes.AccessControl" Version="2.0.59" />
