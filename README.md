@@ -1,6 +1,6 @@
-# Hypnotoad Plugin
+# DalamudDoot Plugin
 
-BardMusicPlayer & LightAmp can be used with the [Hypnotoad](https://github.com/BardMusicPlayer/Hypnotoad-Plugin) companion plugin for enhanced functionality.
+BardMusicPlayer & LightAmp can be used with the [Hypnotoad](https://github.com/BardMusicPlayer/DalamudDoot) companion plugin for enhanced functionality.
 
 <details>
 <summary>Enhanced Features</summary>
@@ -17,6 +17,6 @@ BardMusicPlayer & LightAmp can be used with the [Hypnotoad](https://github.com/B
 
 ## How to Install
 
-Copy this url to your dalamud settings experimental custom plugin repositories and search for the hypnotoad plugin.
+Copy this url to your dalamud settings experimental custom plugin repositories and search for the dalamuddoot plugin.
 
-`https://dl.bardmusicplayer.com/hypnotoad/`
+`https://dl.bardmusicplayer.com/dalamuddoot/`

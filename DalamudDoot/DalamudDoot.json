@@ -1,0 +1,13 @@
+{
+    "Author": "GiR-Zippo, Meowchestra, MoogleTroupe",
+    "Name": "DalamudDoot",
+    "InternalName": "DalamudDoot",
+    "Punchline": "Bard Music Player 2 companion plugin.",
+    "Description": "Bard Music Player 2 companion plugin.",
+    "ApplicableVersion": "any",
+    "Tags": [
+        "Midi",
+        "Performance",
+        "Bard"
+    ]
+}

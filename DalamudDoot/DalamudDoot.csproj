@@ -1,0 +1,63 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <Configurations>Debug;Release</Configurations>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+
+    <Description>MeowMusic companion for enhanced functionality.</Description>
+    <PackageProjectUrl>https://github.com/BardMusicPlayer/DalamudDoot</PackageProjectUrl>
+    <Version>0.0.1.17</Version>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <DebugType>portable</DebugType>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
+    <IsPublishable>True</IsPublishable>
+    <SupportedOSPlatformVersion>8.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="..\data\icon.png" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DalamudPackager" Version="2.1.13" />
+    <PackageReference Include="H.Formatters.Newtonsoft.Json" Version="13.0.59" />
+    <PackageReference Include="H.Pipes.AccessControl" Version="2.0.59" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Dalamud" HintPath="$(AppData)\XIVLauncher\addon\Hooks\dev\Dalamud.dll" Private="false" />
+    <Reference Include="FFXIVClientStructs" HintPath="$(AppData)\XIVLauncher\addon\Hooks\dev\FFXIVClientStructs.dll" Private="false" />
+    <Reference Include="ImGui.NET" HintPath="$(AppData)\XIVLauncher\addon\Hooks\dev\ImGui.NET.dll" Private="false" />
+    <Reference Include="ImGuiScene" HintPath="$(AppData)\XIVLauncher\addon\Hooks\dev\ImGuiScene.dll" Private="false" />
+    <Reference Include="Lumina" HintPath="$(AppData)\XIVLauncher\addon\Hooks\dev\Lumina.dll" Private="false" />
+    <Reference Include="Lumina.Excel" HintPath="$(AppData)\XIVLauncher\addon\Hooks\dev\Lumina.Excel.dll" Private="false" />
+    <Reference Include="Newtonsoft.Json" HintPath="$(AppData)\XIVLauncher\addon\Hooks\dev\Newtonsoft.Json.dll" Private="false" />
+  </ItemGroup>
+
+  <Target Name="PackagePlugin" Condition="'$(Configuration)' == 'Release'">
+    <DalamudPackager ProjectDir="$(ProjectDir)" OutputPath="$(OutputPath)" Exclude="*.pdb;" AssemblyName="$(AssemblyName)" />
+  </Target>
+
+</Project>

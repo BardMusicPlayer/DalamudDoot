@@ -1,14 +1,12 @@
 ﻿/*
- * Copyright(c) 2022 Ori @MidiBard2
+ * Copyright(c) 2023 GiR-Zippo, Ori @MidiBard2
+ * Licensed under the GPL v3 license. See https://github.com/GiR-Zippo/LightAmp/blob/main/LICENSE for full license information.
  */
-
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Dalamud.Logging;
-using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-namespace HypnotoadPlugin.Offsets;
+namespace DalamudDoot.Offsets;
 
 public class PerformActions
 {
@@ -16,19 +14,19 @@ public class PerformActions
     private static DoPerformActionDelegate DoPerformAction { get; } = Marshal.GetDelegateForFunctionPointer<DoPerformActionDelegate>(Offsets.DoPerformAction);
     public static void PerformAction(uint instrumentId)
     {
-        PluginLog.Information($"[PerformAction] instrumentId: {instrumentId}");
+        Api.PluginLog?.Debug($"[PerformAction] instrumentId: {instrumentId}");
         DoPerformAction(Offsets.PerformanceStructPtr, instrumentId);
     }
 
     private PerformActions() { }
-    private static unsafe nint GetWindowByName(string s) => (nint)AtkStage.GetSingleton()->RaptureAtkUnitManager->GetAddonByName(s);
-    public static void Init() => SignatureHelper.Initialise(new PerformActions());
+    private static unsafe nint GetWindowByName(string s) => (nint)AtkStage.Instance()->RaptureAtkUnitManager->GetAddonByName(s);
+    public static void Init() => Api.GameInteropProvider?.InitializeFromAttributes(new PerformActions());
 
     private static void SendAction(nint ptr, params ulong[] param)
     {
-        if (param.Length % 2 != 0) 
+        if (param.Length % 2 != 0)
             throw new ArgumentException("The parameter length must be an integer multiple of 2.");
-        if (ptr == nint.Zero) 
+        if (ptr == nint.Zero)
             throw new ArgumentException("input pointer is null");
 
         var pairCount = param.Length / 2;
@@ -36,7 +34,7 @@ public class PerformActions
         {
             fixed (ulong* u = param)
             {
-                AtkUnitBase.MemberFunctionPointers.FireCallback((AtkUnitBase*)ptr, pairCount, (AtkValue*)u, (void*)1);
+                AtkUnitBase.MemberFunctionPointers.FireCallback((AtkUnitBase*)ptr, (uint)pairCount, (AtkValue*)u, true);
             }
         }
     }
@@ -100,13 +98,13 @@ public class PerformActions
         {
             case < 0:
                 keyNumber += 12;
-                offset    =  -12;
-                octave    =  -1;
+                offset = -12;
+                octave = -1;
                 break;
             case > 12:
                 keyNumber -= 12;
-                offset    =  12;
-                octave    =  1;
+                offset = 12;
+                octave = 1;
                 break;
         }
 
@@ -165,26 +163,25 @@ public class PerformActions
     {
         if (on)
         {
-            if (Hypnotoad.AgentPerformance != null && Hypnotoad.AgentPerformance.NoteNumber - 39 == noteNum)
+            if (DalamudDoot.AgentPerformance != null && DalamudDoot.AgentPerformance.NoteNumber - 39 == noteNum)
                 if (ReleaseKey(noteNum))
-                    Hypnotoad.AgentPerformance.Struct->CurrentPressingNote = -100;
+                    DalamudDoot.AgentPerformance.Struct->CurrentPressingNote = -100;
 
-            if (Hypnotoad.AgentPerformance != null && PressKey(noteNum, ref Hypnotoad.AgentPerformance.Struct->NoteOffset, ref Hypnotoad.AgentPerformance.Struct->OctaveOffset))
+            if (DalamudDoot.AgentPerformance != null && PressKey(noteNum, ref DalamudDoot.AgentPerformance.Struct->NoteOffset, ref DalamudDoot.AgentPerformance.Struct->OctaveOffset))
             {
-                Hypnotoad.AgentPerformance.Struct->CurrentPressingNote = noteNum + 39;
+                DalamudDoot.AgentPerformance.Struct->CurrentPressingNote = noteNum + 39;
             }
 
         }
         else
         {
-            if (Hypnotoad.AgentPerformance != null && Hypnotoad.AgentPerformance.Struct->CurrentPressingNote - 39 != noteNum)
+            if (DalamudDoot.AgentPerformance != null && DalamudDoot.AgentPerformance.Struct->CurrentPressingNote - 39 != noteNum)
                 return;
 
             if (ReleaseKey(noteNum))
             {
-                if (Hypnotoad.AgentPerformance != null) Hypnotoad.AgentPerformance.Struct->CurrentPressingNote = -100;
+                if (DalamudDoot.AgentPerformance != null) DalamudDoot.AgentPerformance.Struct->CurrentPressingNote = -100;
             }
         }
     }
-
 }

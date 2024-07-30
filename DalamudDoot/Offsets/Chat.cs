@@ -23,6 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -30,7 +31,7 @@ using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 
-namespace HypnotoadPlugin.Offsets;
+namespace DalamudDoot.Offsets;
 
 /// <summary>
 /// A class containing chat functionality
@@ -39,22 +40,23 @@ public static partial class Chat
 {
     private delegate void ProcessChatBoxDelegate(nint uiModule, nint message, nint unused, byte a4);
 
-    private static ProcessChatBoxDelegate? ProcessChatBox { get; }
+    private static ProcessChatBoxDelegate ProcessChatBox { get; }
 
-    private static readonly unsafe delegate* unmanaged<Utf8String*, int, nint, void> SanitizeString = null!;
+    private static readonly unsafe delegate* unmanaged<Utf8String*, int, nint, void> _sanitiseString = null!;
 
+    #nullable enable
     static Chat()
     {
-        if (Api.SigScanner != null && Api.SigScanner.TryScanText(Signatures.SendChat, out var processChatBoxPtr))
+        if (Api.SigScanner.TryScanText(Signatures.SendChat, out var processChatBoxPtr))
         {
             ProcessChatBox = Marshal.GetDelegateForFunctionPointer<ProcessChatBoxDelegate>(processChatBoxPtr);
         }
 
         unsafe
         {
-            if (Api.SigScanner != null && Api.SigScanner.TryScanText(Signatures.SanitiseString, out var sanitisePtr))
+            if (Api.SigScanner.TryScanText(Signatures.SanitiseString, out var sanitisePtr))
             {
-                SanitizeString = (delegate* unmanaged<Utf8String*, int, nint, void>)sanitisePtr;
+                _sanitiseString = (delegate* unmanaged<Utf8String*, int, nint, void>)sanitisePtr;
             }
         }
     }
@@ -72,14 +74,14 @@ public static partial class Chat
     /// </summary>
     /// <param name="message">Message to send</param>
     /// <exception cref="InvalidOperationException">If the signature for this function could not be found</exception>
-    private static unsafe void SendMessageUnsafe(byte[] message)
+    public static unsafe void SendMessageUnsafe(byte[] message)
     {
         if (ProcessChatBox == null)
         {
             throw new InvalidOperationException("Could not find signature for chat sending");
         }
 
-        var uiModule = (nint)Framework.Instance()->GetUiModule();
+        var uiModule = (nint)Framework.Instance()->GetUIModule();
 
         using var payload = new ChatPayload(message);
         var mem1 = Marshal.AllocHGlobal(400);
@@ -92,7 +94,7 @@ public static partial class Chat
 
     public static void SendMessage(string message)
     {
-        Api.Framework?.RunOnTick(() => SendMessageInternal(message));
+        Api.Framework.RunOnTick(() => SendMessageInternal(message));
     }
 
     /// <summary>
@@ -140,16 +142,16 @@ public static partial class Chat
     /// <param name="text">text to sanitise</param>
     /// <returns>sanitised text</returns>
     /// <exception cref="InvalidOperationException">If the signature for this function could not be found</exception>
-    private static unsafe string SanitiseText(string text)
+    public static unsafe string SanitiseText(string text)
     {
-        if (SanitizeString == null)
+        if (_sanitiseString == null)
         {
-            throw new InvalidOperationException("Could not find signature for chat sanitization");
+            throw new InvalidOperationException("Could not find signature for chat sanitisation");
         }
 
         var uText = Utf8String.FromString(text);
 
-        SanitizeString(uText, 0x27F, nint.Zero);
+        _sanitiseString(uText, 0x27F, nint.Zero);
         var sanitised = uText->ToString();
 
         uText->Dtor();

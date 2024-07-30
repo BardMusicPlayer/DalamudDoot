@@ -1,13 +1,17 @@
-﻿using System.Numerics;
+﻿/*
+ * Copyright(c) 2023 GiR-Zippo, Meowchestra
+ * Licensed under the GPL v3 license. See https://github.com/GiR-Zippo/LightAmp/blob/main/LICENSE for full license information.
+ */
+
+using System.Numerics;
 using System.Reflection;
 using System.Timers;
-using Dalamud.Logging;
 using H.Pipes.Args;
-using HypnotoadPlugin.Offsets;
 using ImGuiNET;
+using DalamudDoot.Offsets;
 using Timer = System.Timers.Timer;
 
-namespace HypnotoadPlugin;
+namespace DalamudDoot;
 
 public class PayloadMessage
 {
@@ -41,54 +45,61 @@ internal class PluginUi : IDisposable
         Pipe.Initialize();
         if (Pipe.Client != null)
         {
-            Pipe.Client.Connected       += pipeClient_Connected;
+            Pipe.Client.Connected += pipeClient_Connected;
             Pipe.Client.MessageReceived += pipeClient_MessageReceived;
-            Pipe.Client.Disconnected    += pipeClient_Disconnected;
+            Pipe.Client.Disconnected += pipeClient_Disconnected;
         }
 
         ReconnectTimer.Elapsed += reconnectTimer_Elapsed;
 
         ReconnectTimer.Interval = 2000;
-        ReconnectTimer.Enabled  = configuration.AutoConnect;
+        ReconnectTimer.Enabled = configuration.AutoConnect;
 
         Visible = false;
     }
 
-    private static void pipeClient_Connected(object? sender, ConnectionEventArgs<PayloadMessage> e)
+    private static void pipeClient_Connected(object sender, ConnectionEventArgs<PayloadMessage> e)
     {
         Pipe.Client?.WriteAsync(new PayloadMessage
         {
-            MsgType    = MessageType.Handshake,
+            MsgType = MessageType.Handshake,
             MsgChannel = 0,
-            Message    = Environment.ProcessId.ToString()
+            Message = Environment.ProcessId.ToString()
         });
 
 
         Pipe.Client?.WriteAsync(new PayloadMessage
         {
-            MsgType    = MessageType.Version,
+            MsgType = MessageType.Version,
             MsgChannel = 0,
-            Message    = Environment.ProcessId + ":" + Assembly.GetExecutingAssembly().GetName().Version
+            Message = Environment.ProcessId + ":" + Assembly.GetExecutingAssembly().GetName().Version
         });
 
         Pipe.Client?.WriteAsync(new PayloadMessage
         {
-            MsgType    = MessageType.SetGfx,
+            MsgType = MessageType.SetGfx,
             MsgChannel = 0,
-            Message    = Environment.ProcessId + ":" + GfxSettings.AgentConfigSystem.CheckLowSettings()
+            Message = Environment.ProcessId + ":" + GameSettings.AgentConfigSystem.CheckLowSettings()
         });
+
+        Pipe.Client?.WriteAsync(new PayloadMessage
+        {
+            MsgType = MessageType.SetSoundOnOff,
+            Message = Environment.ProcessId + ":" + GameSettings.AgentConfigSystem.GetMasterSoundEnable()
+        });
+        Collector.Instance.UpdateClientStats();
     }
 
-    private void pipeClient_Disconnected(object? sender, ConnectionEventArgs<PayloadMessage> e)
+    private void pipeClient_Disconnected(object sender, ConnectionEventArgs<PayloadMessage> e)
     {
         if (!_configuration.AutoConnect)
             return;
 
         ReconnectTimer.Interval = 2000;
-        ReconnectTimer.Enabled  = _configuration.AutoConnect;
+        ReconnectTimer.Enabled = _configuration.AutoConnect;
     }
 
-    private void reconnectTimer_Elapsed(object? sender, ElapsedEventArgs e)
+    private void reconnectTimer_Elapsed(object sender, ElapsedEventArgs e)
     {
         if (ManuallyDisconnected)
             return;
@@ -104,12 +115,12 @@ internal class PluginUi : IDisposable
         }
     }
 
-    private void pipeClient_MessageReceived(object? sender, ConnectionMessageEventArgs<PayloadMessage?> e)
+    private void pipeClient_MessageReceived(object sender, ConnectionMessageEventArgs<PayloadMessage> e)
     {
         var inMsg = e.Message;
         if (inMsg == null)
             return;
-            
+
         switch (inMsg.MsgType)
         {
             case MessageType.Version:
@@ -117,7 +128,7 @@ internal class PluginUi : IDisposable
                 {
                     ManuallyDisconnected = true;
                     Pipe.Client?.DisconnectAsync();
-                    PluginLog.LogError("Hypnotoad is out of date and cannot work with the running bard program.");
+                    Api.PluginLog?.Error("Whiskers is out of date and cannot work with the running bard program.");
                 }
                 break;
             case MessageType.NoteOn:
@@ -133,6 +144,7 @@ internal class PluginUi : IDisposable
             case MessageType.Instrument:
             case MessageType.AcceptReply:
             case MessageType.SetGfx:
+            case MessageType.SetSoundOnOff:
             case MessageType.StartEnsemble:
                 _qt.Enqueue(inMsg);
                 break;
@@ -142,8 +154,18 @@ internal class PluginUi : IDisposable
     public void Dispose()
     {
         ManuallyDisconnected = true;
-        Pipe.Client?.DisconnectAsync();
-        Pipe.Client?.DisposeAsync();
+
+        if (Pipe.Client != null)
+        {
+            Pipe.Client.Connected -= pipeClient_Connected;
+            Pipe.Client.MessageReceived -= pipeClient_MessageReceived;
+            Pipe.Client.Disconnected -= pipeClient_Disconnected;
+            ReconnectTimer.Elapsed -= reconnectTimer_Elapsed;
+
+            Pipe.Client.DisconnectAsync();
+            Pipe.Client.DisposeAsync();
+        }
+
         Pipe.Dispose();
     }
 
@@ -165,7 +187,7 @@ internal class PluginUi : IDisposable
         {
             ImGui.SetNextWindowSize(new Vector2(300, 110), ImGuiCond.FirstUseEver);
             ImGui.SetNextWindowSizeConstraints(new Vector2(300, 110), new Vector2(float.MaxValue, float.MaxValue));
-            if (ImGui.Begin("Hypnotoad", ref _visible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+            if (ImGui.Begin("Whiskers", ref _visible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
             {
                 // can't ref a property, so use a local copy
                 var configValue = _configuration.AutoConnect;
@@ -182,7 +204,7 @@ internal class PluginUi : IDisposable
                     if (_configuration.AutoConnect)
                         ManuallyDisconnected = false;
                     ReconnectTimer.Interval = 500;
-                    ReconnectTimer.Enabled  = true;
+                    ReconnectTimer.Enabled = true;
                 }
                 ImGui.SameLine();
                 //The disconnect Button
@@ -201,6 +223,21 @@ internal class PluginUi : IDisposable
             ImGui.End();
         }
 
+        //Check performance state
+        /*if (Whiskers.AgentPerformance != null && Whiskers.AgentPerformance.InPerformanceMode != performanceModeOpen)
+        {
+            performanceModeOpen = Whiskers.AgentPerformance.InPerformanceMode;
+            if (Pipe.Client != null && Pipe.Client.IsConnected)
+            {
+                Pipe.Client.WriteAsync(new PayloadMessage()
+                {
+                    MsgType = MessageType.PerformanceModeState,
+                    Message = Environment.ProcessId + ":" + Whiskers.AgentPerformance.Instrument.ToString()
+                });
+            }
+        }*/
+
+        //Do the in queue
         while (_qt.Count > 0)
         {
             try
@@ -222,17 +259,16 @@ internal class PluginUi : IDisposable
                         PerformActions.ConfirmReceiveReadyCheck();
                         break;
                     case MessageType.SetGfx:
-                        if (Convert.ToUInt32(msg.Message) == 1)
+                        if (Convert.ToBoolean(msg.Message))
                         {
-                            GfxSettings.AgentConfigSystem.GetObjQuantity();
-                            GfxSettings.AgentConfigSystem.SetMinimalObjQuantity();
-                            Hypnotoad.AgentConfigSystem?.ApplyGraphicSettings();
+                            GameSettings.AgentConfigSystem.GetSettings();
+                            GameSettings.AgentConfigSystem.SetMinimalGfx();
                         }
                         else
-                        {
-                            GfxSettings.AgentConfigSystem.RestoreObjQuantity();
-                            Hypnotoad.AgentConfigSystem?.ApplyGraphicSettings();
-                        }
+                            GameSettings.AgentConfigSystem.RestoreSettings();
+                        break;
+                    case MessageType.SetSoundOnOff:
+                        GameSettings.AgentConfigSystem.SetMasterSoundEnable(Convert.ToBoolean(msg.Message));
                         break;
                     case MessageType.StartEnsemble:
                         PerformActions.BeginReadyCheck();
@@ -242,7 +278,7 @@ internal class PluginUi : IDisposable
             }
             catch (Exception ex)
             {
-                PluginLog.LogError($"exception: {ex}");
+                Api.PluginLog?.Error($"exception: {ex}");
             }
         }
     }
